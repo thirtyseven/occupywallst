@@ -29,7 +29,6 @@ from django.template.defaultfilters import slugify
 
 from occupywallst.utils import jsonify
 from occupywallst import geo
-from occupywallst.model_update import update
 
 
 logger = logging.getLogger(__name__)
@@ -144,6 +143,8 @@ class UserInfo(models.Model):
         Street address that google reverse geocode aproximated on position.""")
     zipcode = models.CharField(max_length=16, blank=True, help_text="""
         Postal code that google reverse geocode gave us on position.""")
+    is_verified = models.BooleanField(default=False, help_text="""
+        Whether the user has verified by completing a ReCaptcha.""")
 
     objects = models.GeoManager()
 

@@ -45,6 +45,7 @@ from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 
 from occupywallst import models as db
+from occupywallst.forms import VerifyForm
 from occupywallst.utils import APIException
 
 
@@ -158,7 +159,7 @@ def article_new(user, title, content, is_forum, **kwargs):
     else:
         if len(content) > 5 * 1024:
             raise APIException("article too long, jerk.")
-
+    _verify_user(user, kwargs['request'])
     if len(title) < 3:
         raise APIException("title too short")
     if len(title) > 255:
@@ -259,6 +260,15 @@ def article_get(user, article_slug, **kwargs):
     return [article.as_dict({'html': html})]
 
 
+def _verify_user(user, request):
+    if not user.is_staff and user.userinfo and not user.userinfo.is_verified:
+        verify_form = VerifyForm(request.POST)
+        if verify_form.is_valid():
+            user.userinfo.is_verified = True
+            user.userinfo.save()
+        else:
+            raise APIException("Invalid captcha")
+
 def comment_new(user, article_slug, parent_id, content, **kwargs):
     """Leave a comment on an article
 
@@ -273,6 +283,7 @@ def comment_new(user, article_slug, parent_id, content, **kwargs):
         raise APIException("comment too short")
     if len(content) > 5 * 1024:
         raise APIException("comment too long, jerk.")
+    _verify_user(user, kwargs['request'])
     try:
         article = db.Article.objects.get(slug=article_slug, is_deleted=False)
     except db.Article.DoesNotExist:

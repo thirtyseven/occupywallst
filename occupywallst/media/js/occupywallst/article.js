@@ -103,6 +103,8 @@ jQuery.fn.numberAdd = function(delta) {
                 "article_slug": $("article").attr("id"),
                 "parent_id": parent_id,
                 "content": $("textarea", form).val()
+                "recaptcha_challenge_field": $("input[name='recaptcha_challenge_field']", form).val(),
+                "recaptcha_response_field": $("input[name='recaptcha_response_field']", form).val()
             }, function(data) {
                 $(".loader", form).hide();
                 if (data.status == "OK") {

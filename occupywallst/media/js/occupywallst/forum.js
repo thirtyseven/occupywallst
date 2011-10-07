@@ -66,7 +66,9 @@ var forum_init;
             api("/api/article_new/", {
                 "title": $(".title", form).val(),
                 "content": $(".content", form).val(),
-                "is_forum": "true"
+                "is_forum": "true",
+                "recaptcha_challenge_field": $("input[name='recaptcha_challenge_field']", form).val(),
+                "recaptcha_response_field": $("input[name='recaptcha_response_field']", form).val()
             }, function(data) {
                 $(".loader", form).hide();
                 if (data.status == "OK") {

@@ -21,7 +21,7 @@ from django.contrib.auth import views as authviews
 from django.http import Http404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 
-from occupywallst.forms import ProfileForm, SignupForm, RideForm, RideRequestForm
+from occupywallst import forms
 from occupywallst import api
 from occupywallst import models as db
 
@@ -79,11 +79,17 @@ def forum(request):
                .select_related("article", "user")
                .filter(is_removed=False, is_deleted=False)
                .order_by('-published'))
+    if (request.user.is_authenticated() 
+            and not request.user.userinfo.is_verified):
+        verify_form = forms.VerifyForm()
+    else:
+        verify_form = None
     return render_to_response(
         'occupywallst/forum.html', {'articles': articles[:per_page],
                                     'bests': bests[:7],
                                     'recents': recents[:20],
-                                    'per_page': 50},
+                                    'per_page': 50,
+                                    'form' : verify_form},
         context_instance=RequestContext(request))
 
 
@@ -223,7 +229,7 @@ def ride_info(request, ride_id):
                         user=request.user,is_deleted=False)
             except db.RideRequest.DoesNotExist:
                 ride_request = None
-    form = RideRequestForm()
+    form = forms.RideRequestForm()
     return render_to_response(
         'occupywallst/ride_info.html', {
             "ride" : ride,
@@ -237,7 +243,7 @@ def ride_info(request, ride_id):
 @login_required
 def ride_request_add(request, ride_id):
     ride = get_object_or_404(db.Ride, pk=int(ride_id))
-    request_form = RideRequestForm(request.POST)
+    request_form = forms.RideRequestForm(request.POST)
     request_exists = db.RideRequest.objects.filter(
             user=request.user, ride=ride)
     if request_form.is_valid() and not request_exists:
@@ -339,7 +345,7 @@ def signup(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect(request.user.get_absolute_url())
     if request.method == 'POST':
-        form = SignupForm(request.POST)
+        form = forms.SignupForm(request.POST)
         if form.is_valid():
             form.save()
             api.login(request, form.cleaned_data.get('username'),
@@ -347,7 +353,7 @@ def signup(request):
             url = request.user.get_absolute_url()
             return HttpResponseRedirect(url + '?new=1')
     else:
-        form = SignupForm()
+        form = forms.SignupForm()
     return render_to_response(
         'occupywallst/signup.html', {'form': form},
         context_instance=RequestContext(request))
@@ -359,12 +365,12 @@ def edit_profile(request, username):
         url = request.user.get_absolute_url()
         return HttpResponseRedirect(url + 'edit/')
     if request.method == 'POST':
-        form = ProfileForm(request.user, request.POST)
+        form = forms.ProfileForm(request.user, request.POST)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(request.user.get_absolute_url())
     else:
-        form = ProfileForm(request.user)
+        form = forms.ProfileForm(request.user)
     return render_to_response(
         'occupywallst/edit_profile.html', {'form': form},
         context_instance=RequestContext(request))

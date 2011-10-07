@@ -88,6 +88,9 @@ class ProfileForm(forms.Form):
         return user
 
 
+class VerifyForm(forms.Form):
+    captcha = ReCaptchaField()
+
 class SignupForm(ProfileForm):
     username = forms.RegexField(
         label="Username", max_length=30, regex=r'^[a-zA-Z0-9]{3,30}$',
