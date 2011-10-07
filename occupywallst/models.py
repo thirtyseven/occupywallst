@@ -777,3 +777,16 @@ class RideRequest(models.Model):
             return cls.objects.get(ride=ride, user=user)
         except cls.DoesNotExist:
             return None
+
+class StockData(models.Model):
+    symb=models.CharField(max_length=5)
+    date=models.DateField()
+    open=models.IntegerField()
+    high=models.IntegerField()
+    low=models.IntegerField()
+    close=models.IntegerField()
+    volume=models.BigIntegerField()
+    class Meta:
+        unique_together = [ 'symb', 'date' ]
+    def __unicode__(self):
+        return "%s: %s" % (self.symb, self.date)

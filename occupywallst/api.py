@@ -572,6 +572,9 @@ def login(request, username, password, **kwargs):
     auth.login(request, user)
     return [user.userinfo.as_dict()]
 
+def stock_data_percents(request):
+    pass
+
 
 def logout(request, **kwargs):
     """Logout user

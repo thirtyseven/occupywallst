@@ -13,6 +13,11 @@
   </style>
 {% endblock stylesheets %}
 
+{% block scripts %}
+{{ block.super }}
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+{%endblock %}
+
 {% block js_init %}
   {{ block.super }}
   index_init();
@@ -47,6 +52,9 @@
       {% endfor %}
     </section>
   </td><td id="right">
+  <section id="stock-ticker">
+  <div id="stock-chart"></div>
+  </section>
     <section id="mission">
       {% verbiage 'index-sidebar' LANGUAGE_CODE %}
     </section>
