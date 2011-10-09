@@ -33,7 +33,9 @@ r"""
 """
 
 import re
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
+from operator import itemgetter
+from itertools import chain
 
 from django.conf import settings
 from django.contrib import auth
@@ -560,6 +562,33 @@ def signup(request, username, password, email, **kwargs):
     res[0]['conversion'] = render_to_string('occupywallst/conversion.html')
     return res
 
+def _percent_change(seq):
+    it = iter(seq)
+    base = next(it)
+    yield 0
+    for item in it:
+        yield float(item - base)*100/base
+
+def _open_close_times(dates):
+    OPEN = time(9,30)
+    CLOSE = time(16,0)
+    for date in dates:
+        yield datetime.combine(date, OPEN)
+        yield datetime.combine(date, CLOSE)
+
+def stock_percents(request, symbols="", **kwargs):
+    OCCUPATION_START=date(2011, 9, 17)
+    symbol_list = symbols.split(":")
+    for symbol in symbol_list:
+        vals = (db.StockData.objects
+                .filter(symb=symbol, date__gte=OCCUPATION_START)
+                .order_by('date')
+                .values_list('date', 'open', 'close'))
+        changes = _percent_change(
+                chain.from_iterable(map(itemgetter(1,2), vals)))
+        times = _open_close_times(map(itemgetter(0), vals))
+
+        yield (symbol, zip(times, changes))
 
 def login(request, username, password, **kwargs):
     """Login user
@@ -571,9 +600,6 @@ def login(request, username, password, **kwargs):
         raise APIException("invalid username or password")
     auth.login(request, user)
     return [user.userinfo.as_dict()]
-
-def stock_data_percents(request):
-    pass
 
 
 def logout(request, **kwargs):

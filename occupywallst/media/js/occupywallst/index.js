@@ -5,6 +5,8 @@ var index_init;
     "use strict";
 
     var is_working = false;
+    var stocks = ["^DJI", "^GSPC","^IXIC"];
+    var fullnames = { "^DJI" : "DOW", "^GSPC": "S&P 500", "^IXIC": "NASDAQ" };
 
     function init(args) {
         $(window).scroll(function(ev) {
@@ -19,6 +21,7 @@ var index_init;
                 }
             });
         }).scroll();
+        get_stock_data();
     }
 
     function load_article(article) {
@@ -37,6 +40,37 @@ var index_init;
             $(".loady", article).parent().text(err.status + ' ' + err.statusText);
         });
     }
+
+    function get_stock_data() {
+        $.getJSON("/api/safe/stock_data_get/", { "symbols": stocks.join(":")}, function(data) {
+            console.log(data);
+            plot_stock_data(data.results);
+        });
+    }
+
+    function plot_stock_data(arr) {
+        var div = $("#stock-chart");
+        var series = arr.map(function(item, i) {
+            return {
+                label: fullnames[item[0]],
+            data: item[1]
+            };
+        });
+        console.log(arr);
+        console.log(series);
+        $.plot(div, series, {
+            yaxis: {
+                tickFormatter: function(val, axis) {
+                    return val + "%";
+                }
+            },
+            xaxis: {
+                mode: "time",
+                timeformat: "%m/%d"
+            }
+        });
+    }
+
 
     // export stuff
     index_init = init;

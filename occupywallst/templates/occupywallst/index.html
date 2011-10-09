@@ -15,7 +15,8 @@
 
 {% block scripts %}
 {{ block.super }}
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.flot.min.js"></script>
 {%endblock %}
 
 {% block js_init %}
@@ -52,11 +53,11 @@
       {% endfor %}
     </section>
   </td><td id="right">
-  <section id="stock-ticker">
-  <div id="stock-chart"></div>
-  </section>
     <section id="mission">
       {% verbiage 'index-sidebar' LANGUAGE_CODE %}
+    </section>
+    <section id="stock-ticker">
+    <div id="stock-chart" style="height: 200px;"></div>
     </section>
   </td></tr></tbody></table>
 {% endcache %}
