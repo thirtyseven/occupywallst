@@ -562,13 +562,6 @@ def signup(request, username, password, email, **kwargs):
     res[0]['conversion'] = render_to_string('occupywallst/conversion.html')
     return res
 
-def _percent_change(seq):
-    it = iter(seq)
-    base = next(it)
-    yield 0
-    for item in it:
-        yield float(item - base)*100/base
-
 def _open_close_times(dates):
     OPEN = time(9,30)
     CLOSE = time(16,0)
@@ -576,19 +569,18 @@ def _open_close_times(dates):
         yield datetime.combine(date, OPEN)
         yield datetime.combine(date, CLOSE)
 
-def stock_percents(request, symbols="", **kwargs):
-    OCCUPATION_START=date(2011, 9, 17)
+def stock_data(request, d=16, m=9, y=2011, symbols="", **kwargs):
+    start = date(y, m, d)
     symbol_list = symbols.split(":")
     for symbol in symbol_list:
         vals = (db.StockData.objects
-                .filter(symb=symbol, date__gte=OCCUPATION_START)
+                .filter(symb=symbol, date__gte=start)
                 .order_by('date')
                 .values_list('date', 'open', 'close'))
-        changes = _percent_change(
-                chain.from_iterable(map(itemgetter(1,2), vals)))
+        changes = list(chain.from_iterable(map(itemgetter(1,2), vals)))
         times = _open_close_times(map(itemgetter(0), vals))
 
-        yield (symbol, zip(times, changes))
+        yield { "symb": symbol, "series" : zip(xrange(len(changes)), changes), "dates": times}
 
 def login(request, username, password, **kwargs):
     """Login user

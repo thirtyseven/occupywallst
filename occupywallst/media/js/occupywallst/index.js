@@ -5,8 +5,8 @@ var index_init;
     "use strict";
 
     var is_working = false;
-    var stocks = ["^DJI", "^GSPC","^IXIC"];
-    var fullnames = { "^DJI" : "DOW", "^GSPC": "S&P 500", "^IXIC": "NASDAQ" };
+    var stocks = ["^DJI"];//, "^GSPC","^IXIC"];
+    var fullnames = { "^DJI" : "Dow Jones Index", "^GSPC": "S&P 500", "^IXIC": "NASDAQ" };
 
     function init(args) {
         $(window).scroll(function(ev) {
@@ -43,32 +43,56 @@ var index_init;
 
     function get_stock_data() {
         $.getJSON("/api/safe/stock_data_get/", { "symbols": stocks.join(":")}, function(data) {
-            console.log(data);
-            plot_stock_data(data.results);
+            plot_stock_data(data.results[0]);
         });
     }
 
-    function plot_stock_data(arr) {
+    function plot_stock_data(data) {
         var div = $("#stock-chart");
-        var series = arr.map(function(item, i) {
-            return {
-                label: fullnames[item[0]],
-            data: item[1]
-            };
-        });
-        console.log(arr);
-        console.log(series);
-        $.plot(div, series, {
-            yaxis: {
-                tickFormatter: function(val, axis) {
-                    return val + "%";
-                }
-            },
+        var occ_start_time = (new Date(2011, 8, 17)).getTime();
+        var end_time = data.series[data.series.length-1][0];
+        var series = [{
+            label: fullnames[data.symb],
+            data: data.series
+        }];
+        var plot = $.plot(div, series, {
+            yaxes: [
+                { position: "left",
+                  tickFormatter: function(val, axis) {
+                    return (val/100.0);
+                  },
+                },
+                {
+                    position: "right",
+                    show: true,
+                    tickFormatter: function(val, axis) {
+                        return val + "%";
+                    }
+
+                } ],
             xaxis: {
-                mode: "time",
-                timeformat: "%m/%d"
+                //ticks: [ 2, end_time ],
+                tickFormatter: function(val, axis) {
+                    if (val >= data.dates.length) { return false; }
+                    var date = new Date(data.dates[val]);
+                    var day = date.getDate();
+                    var month = date.getMonth()+1;
+                    return month + "/" + day;
+                }
             }
         });
+        function percent_trans(p) {
+            var base = data.series[2][1];
+            return (p-base)*100.0/base;
+        }
+        var yaxis = plot.getAxes().yaxis;
+        var min = percent_trans(yaxis.min);
+        var max = percent_trans(yaxis.max);
+        var y2axis = plot.getOptions().yaxes[1];
+        y2axis.min = min;
+        y2axis.max = max;
+        plot.setupGrid();
+        plot.draw();
     }
 
 

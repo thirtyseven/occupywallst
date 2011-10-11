@@ -10,7 +10,7 @@ SYMBOLS=['^DJI', '^GSPC', "^IXIC"]
 API_URL="http://ichart.finance.yahoo.com/table.csv?"
 
 def get_stock_data(symbols):
-    params = { "g":'d', "a":8, "b":17, "c":2011 }
+    params = { "g":'d', "a":8, "b":13, "c":2011 }
     for symb in symbols:
         params['s']=symb
         try:
