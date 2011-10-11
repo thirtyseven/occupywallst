@@ -569,7 +569,7 @@ def _open_close_times(dates):
         yield datetime.combine(date, OPEN)
         yield datetime.combine(date, CLOSE)
 
-def stock_data(request, d=16, m=9, y=2011, symbols="", **kwargs):
+def stock_data(request, d=17, m=9, y=2011, symbols="", **kwargs):
     start = date(y, m, d)
     symbol_list = symbols.split(":")
     for symbol in symbol_list:

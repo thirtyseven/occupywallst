@@ -7,6 +7,7 @@ var index_init;
     var is_working = false;
     var stocks = ["^DJI"];//, "^GSPC","^IXIC"];
     var fullnames = { "^DJI" : "Dow Jones Index", "^GSPC": "S&P 500", "^IXIC": "NASDAQ" };
+    var daynames = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     function init(args) {
         $(window).scroll(function(ev) {
@@ -50,6 +51,9 @@ var index_init;
     function plot_stock_data(data) {
         var div = $("#stock-chart");
         var occ_start_time = (new Date(2011, 8, 17)).getTime();
+        function day_diff(t1, t2) {
+            return Math.floor((t1-t2)/(1000*60*60*24));
+        }
         var end_time = data.series[data.series.length-1][0];
         var series = [{
             label: fullnames[data.symb],
@@ -71,20 +75,19 @@ var index_init;
 
                 } ],
             xaxis: {
-                //ticks: [ 2, end_time ],
+                ticks: [ 0, end_time ],
                 tickFormatter: function(val, axis) {
                     if (val >= data.dates.length) { return false; }
                     var date = new Date(data.dates[val]);
-                    var day = date.getDate();
-                    var month = date.getMonth()+1;
-                    return month + "/" + day;
+                    return "Day " + (1+day_diff(data.dates[val], occ_start_time));
                 }
             }
         });
         function percent_trans(p) {
-            var base = data.series[2][1];
+            var base = data.series[0][1];
             return (p-base)*100.0/base;
         }
+        /* Setup percent change axis */
         var yaxis = plot.getAxes().yaxis;
         var min = percent_trans(yaxis.min);
         var max = percent_trans(yaxis.max);
