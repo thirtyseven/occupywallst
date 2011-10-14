@@ -101,7 +101,7 @@ def chat(request, room="pub"):
         context_instance=RequestContext(request))
 
 
-def _instate_hierarchy(comments):
+def _instate_hierarchy(comments, root=None):
     """Rearranges list of comments into hierarchical structure
 
     This adds the pseudo-field "replies" to each comment.
@@ -111,13 +111,24 @@ def _instate_hierarchy(comments):
     comhash = dict([(c.id, c) for c in comments])
     res = []
     for com in comments:
-        if com.parent_id is None:
+        if (not root and com.parent_id is None) or com.id == root:
             res.append(com)
         else:
             if com.parent_id in comhash:
                 comhash[com.parent_id].replies.append(com)
     return res
 
+def comments(request, slug):
+    comment_id = int(request.GET.get("parent_id", '0'))
+    try:
+        article = db.Article.objects.get(slug=slug)
+    except db.Article.DoesNotExist:
+        raise Http404
+    comments = article.comments_as_user(request.user)
+    comments = _instate_hierarchy(comments, root=comment_id)
+    return render_to_response(
+            "occupywallst/comment_thread.html", {'comments':comments},
+                context_instance=RequestContext(request))
 
 @my_cache(lambda r, slug, forum=False: ('artfrm:' if forum else 'artnwz:') + slug)
 def article(request, slug, forum=False):

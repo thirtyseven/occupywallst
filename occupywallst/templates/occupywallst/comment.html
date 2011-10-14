@@ -2,6 +2,12 @@
 {% load l10n %}
 
 {% if not comment.is_deleted or comment.replies %}
+{% if depth > 5 %}
+<a href="#" class="loadmore">show replies</a>
+{% else %}
+{% if comment.parent_id and depth = 0 %}
+<a href="#comments" id="showall">show all comments</a>
+{% endif %}
   <div class="comment" id="comment-{{ comment.id }}">
     <div class="content {% if comment.is_removed %}removed{% endif %}">
       {% if comment.is_deleted %}
@@ -42,4 +48,5 @@
       {% show_comments user comment.replies %}
     </div>
   </div>
+{% endif %}
 {% endif %}

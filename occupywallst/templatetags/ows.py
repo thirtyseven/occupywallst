@@ -130,14 +130,16 @@ def verbiage(name, lang):
     return db.Verbiage.get(name, lang)
 
 
-@register.simple_tag
-def show_comments(user, comments):
+@register.simple_tag(takes_context=True)
+def show_comments(context, user, comments, depth=None) :
     """I wrote this because template includes don't recurse properly
     """
     res = []
+    depth = context.get("depth", -1)
     for comment in comments:
         if not comment.is_removed or user.is_staff:
             res.append(render_to_string('occupywallst/comment.html',
                                         {'comment': comment,
-                                         'user': user}))
+                                         'user': user,
+                                         'depth': depth + 1}))
     return "".join(res)

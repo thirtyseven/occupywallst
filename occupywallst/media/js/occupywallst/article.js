@@ -11,6 +11,8 @@ jQuery.fn.numberAdd = function(delta) {
     "use strict";
 
     var penguin = 50;
+    var stack = [];
+    var top_comment = "";
 
     function init() {
         init_article($("article"));
@@ -135,6 +137,8 @@ jQuery.fn.numberAdd = function(delta) {
         var comment_id = comment.attr("id").split("-")[1];
         var content = $("> .content", comment);
         var replies = $("> .replies", comment);
+        var slug = $("article").attr("id");
+        var url = "/article/"+slug+"/comments/"
 
         $(".reply", content).click(function(ev) {
             ev.preventDefault();
@@ -281,6 +285,39 @@ jQuery.fn.numberAdd = function(delta) {
                     alert(data.message);
                 }
             });
+        });
+
+        function load_comments(comment_id) {
+            var slide_dir;
+            if (comment_id) {
+                stack.push(top_comment);
+                top_comment = comment_id;
+                slide_dir = "left";
+            } else {
+                top_comment = comment_id = stack.pop();
+                slide_dir = "right";
+            }
+            var params = comment_id ?  { parent_id: comment_id } : {}
+            $.get(url, params, function(data) {
+                if (slide_dir == "right") { 
+                    $("#comment-list").animate({'margin-left': 500}, 500);
+                }
+                var list = $("#comment-list").html(data);
+
+                $(".comment").each(function(i) {
+                    init_comment($(this));
+                });
+                $("#comment-"+comment_id + " > .content .permalink").click();
+                $("#showall").click(function(ev) {
+                    load_comments();
+                });
+            });
+        }
+
+
+        $("> .replies > .loadmore", comment).click(function (ev) {
+            ev.preventDefault();
+            load_comments(comment_id);
         });
     }
 
